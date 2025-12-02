@@ -17,10 +17,17 @@ namespace FileHash
         ComputeHash compute = new ComputeHash();
         IOManagement fileSystem = new IOManagement();
         bool computeresult;
+        bool writeresult;
 
         public Form1()
         {
             InitializeComponent();
+
+            ///
+            /// At first start, disable all components except 
+            /// the select file button and
+            /// the associated textbox
+            /// 
             Computebutton.Enabled = false;
             Copybutton.Enabled = false;
             Writebutton.Enabled = false;
@@ -28,12 +35,21 @@ namespace FileHash
             statusLabel.Text = "";
         }
 
+
+        /// <summary>
+        /// Select file with the file browser dialog
+        /// Return the full path to the associated textbox
+        /// </summary>
         private void OpenFilebutton_Click(object sender, EventArgs e)
         {
             openFileDialog1.ShowDialog();
             PathToFiletextBox.Text = openFileDialog1.FileName;
         }
 
+
+        /// <summary>
+        /// Compute hash result
+        /// </summary>
         private void Computebutton_Click(object sender, EventArgs e)
         {
             if (!backgroundWorker1.IsBusy)
@@ -41,8 +57,9 @@ namespace FileHash
                 if (fileSystem.FileExists(PathToFiletextBox.Text))
                 {
                     statusLabel.Text = "Computing...";
-                    Computebutton.Text = "Cancel";
                     Computebutton.Enabled = false;
+                    Copybutton.Enabled = false;
+                    Writebutton.Enabled = false;
                     backgroundWorker1.RunWorkerAsync();
                 }
                 else
@@ -109,13 +126,22 @@ namespace FileHash
         {
             statusLabel.Text = "Writing file";
 
-            fileSystem.WriteHashFile(PathToFiletextBox.Text, ResulttextBox.Text);
+            writeresult = fileSystem.WriteHashFile(PathToFiletextBox.Text, ResulttextBox.Text);
 
-            statusLabel.Text = "Writing complete";
+            if (writeresult)
+            {
+                statusLabel.Text = "Writing complete";
+            }
+            else
+            {
+                statusLabel.Text = "Write error";
+            }
+            
         }
 
         /// <summary>
         /// Set the file path for a drag-and-drop action
+        /// In case of multiple selected files, only the first one is use
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -156,6 +182,8 @@ namespace FileHash
             //start compute of the hash
             if (computeresult)
             {
+                statusLabel.Text = "Finish!";
+
                 //display result
                 ResulttextBox.Text = compute.hashValue;
 
@@ -164,6 +192,10 @@ namespace FileHash
                 Writebutton.Enabled = true;
 
                 oldPath = PathToFiletextBox.Text;
+            }
+            else 
+            {
+                statusLabel.Text = "Error";
             }
         }
     }
